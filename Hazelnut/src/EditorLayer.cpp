@@ -24,6 +24,7 @@ namespace Hazel {
 
 		m_IconPlay = Texture2D::Create("resources/icons/buttons/PlayButton.png");
 		m_IconStop = Texture2D::Create("resources/icons/buttons/StopButton.png");
+		m_IconSimulate = Texture2D::Create("resources/icons/buttons/SimulateButton.png");
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH };
@@ -31,8 +32,9 @@ namespace Hazel {
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
-		m_ActiveScene = CreateRef<Scene>();
-		m_EditorScene = m_ActiveScene;
+		m_EditorScene = CreateRef<Scene>();
+		m_ActiveScene = m_EditorScene;
+
 		auto commandLineArgs = Application::Get().GetCommandLineArgs();
 		if (commandLineArgs.Count > 1)
 		{
@@ -78,25 +80,32 @@ namespace Hazel {
 		// Update
 		switch (m_SceneState)
 		{
-		case Hazel::EditorLayer::SceneState::Edit:
-		{
-			if (m_ViewportFocused)
+			case Hazel::EditorLayer::SceneState::Edit:
 			{
-				m_CameraController.OnUpdate(ts);
+				if (m_ViewportFocused)
+				{
+					m_CameraController.OnUpdate(ts);
+				}
+
+				m_EditorCamera.OnUpdate(ts);
+
+				m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+
+				break;
 			}
+			case Hazel::EditorLayer::SceneState::Play:
+			{
+				m_ActiveScene->OnUpdateRuntime(ts);
 
-			m_EditorCamera.OnUpdate(ts);
+				break;
+			}
+			case SceneState::Simulate:
+			{
+				m_EditorCamera.OnUpdate(ts);
 
-			m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
-
-			break;
-		}
-		case Hazel::EditorLayer::SceneState::Play:
-		{
-			m_ActiveScene->OnUpdateRuntime(ts);
-
-			break;
-		}
+				m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
+				break;
+			}
 		}
 
 		auto [mx, my] = ImGui::GetMousePos();
@@ -312,6 +321,9 @@ namespace Hazel {
 
 	void EditorLayer::OnScenePlay()
 	{
+		if (m_SceneState == SceneState::Simulate)
+			OnSceneStop();
+
 		m_SceneState = SceneState::Play;
 
 		m_ActiveScene = Scene::Copy(m_EditorScene);
@@ -321,10 +333,29 @@ namespace Hazel {
 
 	void EditorLayer::OnSceneStop()
 	{
+		HZ_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
+
+		if (m_SceneState == SceneState::Play)
+			m_ActiveScene->OnRuntimeStop();
+		else if (m_SceneState == SceneState::Simulate)
+			m_ActiveScene->OnSimulationStop();
+
 		m_SceneState = SceneState::Edit;
 
-		m_ActiveScene->OnRuntimeStop();
 		m_ActiveScene = m_EditorScene;
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+	}
+
+	void EditorLayer::OnSceneSimulate()
+	{
+		if (m_SceneState == SceneState::Play)
+			OnSceneStop();
+
+		m_SceneState = SceneState::Simulate;
+
+		m_ActiveScene = Scene::Copy(m_EditorScene);
+		m_ActiveScene->OnSimulationStart();
+
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 
@@ -343,6 +374,8 @@ namespace Hazel {
 		if (m_SceneState == SceneState::Play)
 		{
 			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
+			if (!camera)
+				return;
 
 			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
 		}
@@ -397,15 +430,35 @@ namespace Hazel {
 			
 		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
+		bool toolbarEnabled = (bool)m_ActiveScene;
+
+		ImVec4 tintColor = ImVec4(1, 1, 1, 1);
+		if (!toolbarEnabled)
+			tintColor.w = 0.5f;
+
 		float size = ImGui::GetWindowHeight() - 4.f;
-		Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
-		ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-		if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(icon->GetRendererID()), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+
 		{
-			if (m_SceneState == SceneState::Edit)
-				OnScenePlay();
-			else if (m_SceneState == SceneState::Play)
-				OnSceneStop();
+			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate) ? m_IconPlay : m_IconStop;
+			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+			{
+				if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate)
+					OnScenePlay();
+				else if (m_SceneState == SceneState::Play)
+					OnSceneStop();
+			}
+		}
+		ImGui::SameLine();
+		{
+			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play) ? m_IconSimulate : m_IconStop;		//ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+			{
+				if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play)
+					OnSceneSimulate();
+				else if (m_SceneState == SceneState::Simulate)
+					OnSceneStop();
+			}
 		}
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);

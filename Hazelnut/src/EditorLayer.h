@@ -25,6 +25,8 @@ namespace Hazel
 
 		void OnScenePlay();
 		void OnSceneStop();
+		void OnSceneSimulate();
+
 		void OnDuplicateEntity();
 		void OnOverlayRender();
 
@@ -69,7 +71,8 @@ namespace Hazel
 		enum class SceneState
 		{
 			Edit = 0,
-			Play = 1
+			Play = 1,
+			Simulate = 2
 		};
 
 		SceneState m_SceneState = SceneState::Edit;
@@ -81,6 +84,7 @@ namespace Hazel
 		// Editor resources
 		Ref<Texture2D> m_IconPlay;
 		Ref<Texture2D> m_IconStop;
+		Ref<Texture2D> m_IconSimulate;
 	};
 
 }
