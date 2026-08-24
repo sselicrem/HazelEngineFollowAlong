@@ -46,6 +46,8 @@ namespace Hazel {
 		m_EditorCamera = EditorCamera(30.f, 1.6f, 0.1f, 1000.f);
 		//Panels
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+		Renderer2D::SetLineWidth(4.0f);
 	}
 
 	void EditorLayer::OnDetach()
@@ -411,6 +413,12 @@ namespace Hazel {
 					Renderer2D::DrawRect(transform, glm::vec4(0.f, 1.f, 0.f, 1.f));
 				}
 			}
+		}
+
+		// Draw selected entity outline 
+		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity()) {
+			TransformComponent transform = selectedEntity.GetComponent<TransformComponent>();
+			Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(1.f, 1.f, 1.f, 1.f));
 		}
 
 		Renderer2D::EndScene();
