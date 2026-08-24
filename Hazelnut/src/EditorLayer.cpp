@@ -488,7 +488,7 @@ namespace Hazel {
 	bool EditorLayer::OnKeyPressed(KeyPressedEvent& event)
 	{
 		// Shortcuts
-		if (event.GetRepeatCount() > 0)
+		if (event.IsRepeat())
 			return false;
 
 		bool controlPressed = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
