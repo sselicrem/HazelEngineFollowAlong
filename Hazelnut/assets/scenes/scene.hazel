@@ -1,10 +1,10 @@
 Scene: Untitled
 Entities:
-  - Entity: 15852546861320765064
+  - Entity: 3263328598497060330
     TagComponent:
       Tag: Camera B
     TransformComponent:
-      Translation: [1, 1, 1]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
@@ -18,11 +18,11 @@ Entities:
         OrthographicFar: 1
       Primary: false
       FixedAspectRatio: false
-  - Entity: 894234836035564346
+  - Entity: 3503638098362915787
     TagComponent:
       Tag: Camera A
     TransformComponent:
-      Translation: [1, 1, 1]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
@@ -36,21 +36,25 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 16426073408524941037
+  - Entity: 17154294327283940743
     TagComponent:
-      Tag: Square2
+      Tag: Cherno Square
     TransformComponent:
-      Translation: [2.5999999, 1, 1]
+      Translation: [-1.09518838, 1.10000002, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [4.40999985, 4.40999985, 4.40999985]
     SpriteRendererComponent:
-      Color: [1, 1, 0, 1]
-  - Entity: 16514573919485242556
+      Color: [1, 0.999989986, 0.999989986, 1]
+      TexturePath: assets\textures\ChernoLogo.png
+      TilingFactor: 1
+  - Entity: 6645248621277955267
     TagComponent:
-      Tag: Square
+      Tag: CheckerboardBG
     TransformComponent:
-      Translation: [1, 1, 1]
+      Translation: [2.4000001, 0, -12.255374]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [20, 20, 20]
     SpriteRendererComponent:
-      Color: [0, 1, 0, 1]
+      Color: [0.999989986, 1, 0.999989986, 1]
+      TexturePath: assets\textures\Checkerboard.png
+      TilingFactor: 10

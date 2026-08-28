@@ -35,7 +35,7 @@ namespace Hazel {
 		m_EditorScene = CreateRef<Scene>();
 		m_ActiveScene = m_EditorScene;
 
-		auto commandLineArgs = Application::Get().GetCommandLineArgs();
+		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
 		{
 			auto sceneFilePath = commandLineArgs[1];
@@ -44,8 +44,6 @@ namespace Hazel {
 		}
 
 		m_EditorCamera = EditorCamera(30.f, 1.6f, 0.1f, 1000.f);
-		//Panels
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
 		Renderer2D::SetLineWidth(4.0f);
 	}
