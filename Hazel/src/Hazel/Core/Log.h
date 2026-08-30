@@ -3,10 +3,13 @@
 #include "Hazel/Core/Base.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
+#include "glm/gtx/string_cast.hpp"
 
+// This ignores all warnings raised inside External headers
+#pragma warning(push, 0)
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
+#pragma warning(pop)
 
 namespace Hazel {
 
@@ -15,8 +18,8 @@ namespace Hazel {
 	public:
 		static void Init();
 
-		inline static Ref<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
-		inline static Ref<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
+		static Ref<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
+		static Ref<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
 	private:
 		static Ref<spdlog::logger> s_CoreLogger;
 		static Ref<spdlog::logger> s_ClientLogger;
@@ -37,9 +40,9 @@ inline OStream& operator<<(OStream& os, const glm::mat<C, R, T, Q>& matrix)
 }
 
 template<typename OStream, typename T, glm::qualifier Q>
-inline OStream& operator<<(OStream& os, const glm::qua<T, Q>& vectorquaternio)
+inline OStream& operator<<(OStream& os, glm::qua<T, Q> quaternion)
 {
-	return os << glm::to_string(quaternio);
+	return os << glm::to_string(quaternion);
 }
 
 // Core log macros
